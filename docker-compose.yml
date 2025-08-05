@@ -1,0 +1,102 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: geotel_postgres
+    environment:
+      POSTGRES_DB: geotel_db
+      POSTGRES_USER: geotel_user
+      POSTGRES_PASSWORD: geotel_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/Database/Diagrama AV.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - geotel-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geotel_user -d geotel_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MQTT Broker (Eclipse Mosquitto) - COMENTADO porque ya tienes uno corriendo
+  # mosquitto:
+  #   image: eclipse-mosquitto:2.0-openssl
+  #   container_name: geotel_mosquitto
+  #   ports:
+  #     - "1883:1883"
+  #     - "9001:9001"
+  #   volumes:
+  #     - mosquitto_data:/mosquitto/data
+  #     - mosquitto_logs:/mosquitto/log
+  #     - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+  #   networks:
+  #     - geotel-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "mosquitto_pub -h localhost -t test -m 'health check' || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # MQTT to Database Writer
+  mqtt-writer:
+    build: .
+    container_name: geotel_mqtt_writer
+    environment:
+      DATABASE_URL: postgresql://geotel_user:geotel_password@postgres:5432/geotel_db
+      MQTT_HOST: host.docker.internal  # Usar Mosquitto del host
+      MQTT_PORT: 1883
+      MQTT_KEEPALIVE: 60
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - geotel-network
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # MQTT Simulator (for testing) - ahora usa el Mosquitto del host
+  mqtt-simulator:
+    build: .
+    container_name: geotel_mqtt_simulator
+    command: ["python", "simulate_mqtt.py", "--host", "host.docker.internal", "--all-units", "--delay", "5"]
+    networks:
+      - geotel-network
+    profiles:
+      - testing
+    restart: "no"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: geotel_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@geotel.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - geotel-network
+    profiles:
+      - admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_logs:
+  pgadmin_data:
+
+networks:
+  geotel-network:
+    driver: bridge

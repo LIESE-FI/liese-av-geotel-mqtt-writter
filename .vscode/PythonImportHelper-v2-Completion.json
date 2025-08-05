@@ -26,6 +26,49 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "uuid",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "uuid",
+        "description": "uuid",
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
         "label": "sqlalchemy",
         "kind": 6,
         "isExtraImport": true,
@@ -53,6 +96,23 @@
         "documentation": {}
     },
     {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
         "label": "load_dotenv",
         "importPath": "dotenv",
         "description": "dotenv",
@@ -66,6 +126,50 @@
         "description": "Schemas",
         "isExtraImport": true,
         "detail": "Schemas",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "DatabaseConnection",
+        "importPath": "Services.DatabaseConnection",
+        "description": "Services.DatabaseConnection",
+        "isExtraImport": true,
+        "detail": "Services.DatabaseConnection",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "argparse",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "argparse",
+        "description": "argparse",
+        "detail": "argparse",
         "documentation": {}
     },
     {
@@ -91,8 +195,44 @@
         "kind": 5,
         "importPath": "src.main",
         "description": "src.main",
-        "peekOfCode": "TOPICS = [\"test\"]\ndef __main__():\n    \"\"\"\n    Main function to initialize and run the MQTTToDatabaseWriter.\n    This function loads environment variables, initializes the MQTTToDatabaseWriter with\n    the specified topic, database URL, table name, and columns, and starts the MQTT client loop.\n    Returns:\n    - None\n    \"\"\"\n    # Load environment variables from .env file",
+        "peekOfCode": "TOPICS = [\"U+_Combustible\", \"U+_Velocidad\", \"U+_Panic\", \"U+_RPM\", \"U+_Temperatura\", \"U+_Latitud\", \"U+_Longitud\"]\ndef __main__():\n    \"\"\"\n    Main function to initialize and run the MQTTToDatabaseWriter.\n    This function loads environment variables, initializes the MQTTToDatabaseWriter with\n    wildcard topics to catch all unit messages, and starts the MQTT client.\n    Returns:\n    - None\n    \"\"\"\n    # Load environment variables from .env file",
         "detail": "src.main",
+        "documentation": {}
+    },
+    {
+        "label": "create_sample_data",
+        "kind": 2,
+        "importPath": "create_sample_data",
+        "description": "create_sample_data",
+        "peekOfCode": "def create_sample_data():\n    \"\"\"Create sample data for testing the MQTT writer\"\"\"\n    # Load environment variables\n    load_dotenv()\n    db_url = os.getenv(\"DATABASE_URL\")\n    if not db_url:\n        print(\"DATABASE_URL not found in environment variables\")\n        return\n    db = DatabaseConnection(db_url)\n    try:",
+        "detail": "create_sample_data",
+        "documentation": {}
+    },
+    {
+        "label": "simulate_unit_data",
+        "kind": 2,
+        "importPath": "simulate_mqtt",
+        "description": "simulate_mqtt",
+        "peekOfCode": "def simulate_unit_data(client, unit_number, delay=2):\n    \"\"\"Simulate telemetry data for a specific unit\"\"\"\n    topics_and_ranges = {\n        'Combustible': (0, 100),      # Fuel level percentage\n        'Velocidad': (0, 120),        # Speed in km/h\n        'RPM': (600, 3000),           # Engine RPM\n        'Temperatura': (70, 110),     # Engine temperature in Celsius\n        'Latitud': (19.4, 19.5),     # Latitude (Mexico City area)\n        'Longitud': (-99.2, -99.1),  # Longitude (Mexico City area)\n    }",
+        "detail": "simulate_mqtt",
+        "documentation": {}
+    },
+    {
+        "label": "on_connect",
+        "kind": 2,
+        "importPath": "simulate_mqtt",
+        "description": "simulate_mqtt",
+        "peekOfCode": "def on_connect(client, userdata, flags, reason_code, properties):\n    if reason_code.is_failure:\n        print(f\"Failed to connect: {reason_code}\")\n    else:\n        print(\"Connected to MQTT broker successfully\")\ndef main():\n    parser = argparse.ArgumentParser(description='Simulate MQTT telemetry data')\n    parser.add_argument('--unit', type=int, default=1, help='Unit number to simulate (default: 1)')\n    parser.add_argument('--host', type=str, default='localhost', help='MQTT broker host (default: localhost)')\n    parser.add_argument('--port', type=int, default=1883, help='MQTT broker port (default: 1883)')",
+        "detail": "simulate_mqtt",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "simulate_mqtt",
+        "description": "simulate_mqtt",
+        "peekOfCode": "def main():\n    parser = argparse.ArgumentParser(description='Simulate MQTT telemetry data')\n    parser.add_argument('--unit', type=int, default=1, help='Unit number to simulate (default: 1)')\n    parser.add_argument('--host', type=str, default='localhost', help='MQTT broker host (default: localhost)')\n    parser.add_argument('--port', type=int, default=1883, help='MQTT broker port (default: 1883)')\n    parser.add_argument('--delay', type=int, default=2, help='Delay between cycles in seconds (default: 2)')\n    parser.add_argument('--all-units', action='store_true', help='Simulate all units (1, 2, 3)')\n    args = parser.parse_args()\n    if args.all_units:\n        import threading",
+        "detail": "simulate_mqtt",
         "documentation": {}
     }
 ]

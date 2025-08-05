@@ -1,86 +1,131 @@
-CREATE TABLE "sites" (
-  "id" int PRIMARY KEY,
-  "name" text UNIQUE
+CREATE TABLE "Drivers" (
+  "driver_id" UUID PRIMARY KEY,
+  "first_name" varchar,
+  "middle_name" varchar,
+  "last_name_1" varchar,
+  "last_name_2" varchar,
+  "rfc" varchar,
+  "phone" varchar,
+  "birthday" date,
+  "is_current" boolean,
+  "score" numeric,
+  "blood_type" varchar,
+  "emergency_contact" UUID,
+  "photo" bytea,
+  "created_at" timestamp,
+  "updated_at" timestamp
 );
 
-CREATE TABLE "companies" (
-  "id" int PRIMARY KEY,
-  "name" text UNIQUE
+CREATE TABLE "EmergencyContacts" (
+  "emergency_contact_id" UUID PRIMARY KEY,
+  "first_name" varchar,
+  "last_name" varchar,
+  "middle_name" varchar,
+  "phone" varchar
 );
 
-CREATE TABLE "controllers" (
-  "id" int PRIMARY KEY,
-  "name" text UNIQUE
+CREATE TABLE "Fleet" (
+  "fleet_id" UUID PRIMARY KEY,
+  "fleet_name" varchar,
+  "created_at" timestamp
 );
 
-CREATE TABLE "devices" (
-  "id" int PRIMARY KEY,
-  "device_id" text UNIQUE,
-  "site_id" int,
-  "company_id" int,
-  "controller_id" int
+CREATE TABLE "MotorStatuses" (
+  "motor_status_id" UUID PRIMARY KEY,
+  "motor_status_value" varchar,
+  "motor_status_description" varchar
 );
 
-CREATE TABLE "measurements" (
-  "id" bigint PRIMARY KEY,
-  "device_id" int,
-  "timestamp" timestamp,
-  "modbus_address" int
+CREATE TABLE "Models" (
+  "model_id" UUID PRIMARY KEY,
+  "model_name" varchar,
+  "created_at" timestamp
 );
 
-CREATE TABLE "measurement_values" (
-  "id" bigint PRIMARY KEY,
-  "measurement_id" bigint,
-  "name" text,
-  "address" int,
-  "value" double,
-  "type" text,
-  "status" text
+CREATE TABLE "Units" (
+  "unit_id" UUID PRIMARY KEY,
+  "driver" UUID,
+  "fleet" UUID,
+  "model" UUID,
+  "motor_status" UUID,
+  "fuel_level" numeric,
+  "current_speed" numeric,
+  "is_online" boolean,
+  "panic_button_active" boolean,
+  "created_at" timestamp,
+  "updated_at" timestamp,
+  "rpm" int,
+  "temperature" int,
+  "check_engine" boolean
 );
 
-CREATE TABLE "binary_states" (
-  "id" bigint PRIMARY KEY,
-  "measurement_id" bigint,
-  "gcb_feedback" boolean,
-  "mcb_feedback" boolean,
-  "ready_to_load" boolean,
-  "generator_healthy" boolean,
-  "mains_healthy" boolean,
-  "warning_alarm" boolean,
-  "shutdown_alarm" boolean,
-  "status" text
+CREATE TABLE "SpeedHistory" (
+  "speed_id" UUID PRIMARY KEY,
+  "unit_id" UUID,
+  "driver_id" UUID,
+  "speed" numeric,
+  "recorded_at" timestamp
 );
 
-CREATE TABLE "setpoints" (
-  "id" bigint PRIMARY KEY,
-  "measurement_id" bigint,
-  "name" text,
-  "address" int,
-  "value" double,
-  "status" text
+CREATE TABLE "LocationHistory" (
+  "location_id" UUID PRIMARY KEY,
+  "unit_id" UUID,
+  "driver_id" UUID,
+  "latitude" numeric,
+  "longitude" numeric,
+  "recorded_at" timestamp
 );
 
-CREATE TABLE "alarms" (
-  "id" bigint PRIMARY KEY,
-  "measurement_id" bigint,
-  "alarm_index" int,
-  "address" int,
-  "text" text,
-  "status" text
+CREATE TABLE "DailyReport" (
+  "daily_report_id" UUID PRIMARY KEY,
+  "unit" UUID,
+  "max_speed" UUID,
+  "driver" UUID,
+  "speed_limit_reached" int,
+  "conduction_time" numeric,
+  "sudden_accelerations" int,
+  "sudden_brakes" int,
+  "sudden_turns" int,
+  "created_at" timestamp,
+  "updated_at" timestamp
 );
 
-ALTER TABLE "devices" ADD FOREIGN KEY ("site_id") REFERENCES "sites" ("id");
+CREATE TABLE "Notifications" (
+  "notification_id" UUID PRIMARY KEY,
+  "notification_type" UUID,
+  "unit" UUID,
+  "detail" varchar,
+  "created_at" timestamp
+);
 
-ALTER TABLE "devices" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id");
+CREATE TABLE "NotificationTypes" (
+  "notification_type_id" UUID PRIMARY KEY,
+  "notification_value" varchar,
+  "created_at" timestamp
+);
 
-ALTER TABLE "devices" ADD FOREIGN KEY ("controller_id") REFERENCES "controllers" ("id");
+ALTER TABLE "Drivers" ADD FOREIGN KEY ("emergency_contact") REFERENCES "EmergencyContacts" ("emergency_contact_id");
 
-ALTER TABLE "measurements" ADD FOREIGN KEY ("device_id") REFERENCES "devices" ("id");
+ALTER TABLE "Units" ADD FOREIGN KEY ("driver") REFERENCES "Drivers" ("driver_id");
 
-ALTER TABLE "measurement_values" ADD FOREIGN KEY ("measurement_id") REFERENCES "measurements" ("id");
+ALTER TABLE "Units" ADD FOREIGN KEY ("fleet") REFERENCES "Fleet" ("fleet_id");
 
-ALTER TABLE "binary_states" ADD FOREIGN KEY ("measurement_id") REFERENCES "measurements" ("id");
+ALTER TABLE "Units" ADD FOREIGN KEY ("model") REFERENCES "Models" ("model_id");
 
-ALTER TABLE "setpoints" ADD FOREIGN KEY ("measurement_id") REFERENCES "measurements" ("id");
+ALTER TABLE "Units" ADD FOREIGN KEY ("motor_status") REFERENCES "MotorStatuses" ("motor_status_id");
 
-ALTER TABLE "alarms" ADD FOREIGN KEY ("measurement_id") REFERENCES "measurements" ("id");
+ALTER TABLE "SpeedHistory" ADD FOREIGN KEY ("unit_id") REFERENCES "Units" ("unit_id");
+
+ALTER TABLE "SpeedHistory" ADD FOREIGN KEY ("driver_id") REFERENCES "Drivers" ("driver_id");
+
+ALTER TABLE "LocationHistory" ADD FOREIGN KEY ("unit_id") REFERENCES "Units" ("unit_id");
+
+ALTER TABLE "LocationHistory" ADD FOREIGN KEY ("driver_id") REFERENCES "Drivers" ("driver_id");
+
+ALTER TABLE "DailyReport" ADD FOREIGN KEY ("unit") REFERENCES "Units" ("unit_id");
+
+ALTER TABLE "DailyReport" ADD FOREIGN KEY ("driver") REFERENCES "Drivers" ("driver_id");
+
+ALTER TABLE "Notifications" ADD FOREIGN KEY ("unit") REFERENCES "Units" ("unit_id");
+
+ALTER TABLE "Notifications" ADD FOREIGN KEY ("notification_type") REFERENCES "NotificationTypes" ("notification_type_id");
